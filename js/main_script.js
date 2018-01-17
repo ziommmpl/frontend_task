@@ -1,8 +1,6 @@
 //global variable source link
-var pagtab;
-var apilink = "http://test-api.kuria.tshdev.io/";
-var sourcelink;
-var currentlocation;
+var apilink = "http://test-api.kuria.tshdev.io/"; //api variable
+var sourcelink; //generated link with appropriate query
 
 //ask server and download json resultsCARING
 $(document).ready(function(){
@@ -26,16 +24,19 @@ function ratingFunction(){
     return x;
 }
 
-//get url from button and change server query
-function pagFunction(a){
+//get url from button and change onclick query for arrows (send current location so i can determinate where i am
+function arrowFunction(a,currentlocation){
     if(a=="L"){ //left and right buttons
         sourcelink = apilink + "?page=" + (Number(currentlocation)-Number(1));
     }else if(a=="R"){
         sourcelink = apilink + "?page=" + (Number(currentlocation)+Number(1));
-    }else{ //pagining buttons
-    console.log(pagtab[a]);
-    sourcelink = apilink + "?" + pagtab[a];
     }
+    reciveData();
+}
+
+//get url from button and change onclick query for pages
+function pagesFuntion(pagtab){
+    sourcelink = apilink + "?page=" + pagtab;
     reciveData();
 }
 
@@ -46,11 +47,8 @@ function resetFuntion(){
     sourcelink = apilink;
 }
 
-
-
 function reciveData(){
     //take valu from text field to query value
-    console.log("przepaliłem recivedata");
     $.getJSON(sourcelink, {
         //page: 0,
         rating: ratingFunction(),
@@ -63,42 +61,39 @@ function reciveData(){
             $("#maintable").append("<tr><td id='supliertab'>" + result.payments[i].payment_supplier + "</td><td id='poundrating'>" + drawPounds(result.payments[i].payment_cost_rating)
                 + "</td><td id='referencetab'>" + result.payments[i].payment_ref + "</td><td id = 'valuetab'>" + '£' + numeral(result.payments[i].payment_amount).format('0,0') + " </td> ");
         }
-        //console.log(result.pagination.links);
-        //console.log(result.pagination.current);
-        pagtab = result.pagination.links;
-        currentlocation = result.pagination.current;
 
-        //buttons from - to
+        //buttons from - to - current
         var btnFrom = result.pagination.from;
         var btnTo = result.pagination.to;
+        var currentlocation = result.pagination.current;
         //pages buttons clear
         $("#paggination").html("");
 
-        if(result.pagination.left == true){
-            $("#paggination").append("<button class='paginationBtn' onclick=\"pagFunction('L')\">\<\</button>")
+        //left button
+        if(result.pagination.left == true){ //active button
+            $("#paggination").append("<button class='paginationBtn' onclick=\"arrowFunction('L'," + currentlocation + ")\">\<\</button>")
         }
-        else{
+        else{ //button will not respond but will be displayed
             $("#paggination").append("<button class='paginationBtn'>\<\</button>")
         }
         //show buttons and higlight site where i am
         for(var i = btnFrom; i < btnTo ; i++){
-            //console.log(i);
-
             if(result.pagination.current == i){
                 $("#paggination").append("<button class='clickedBtn'>" + Number(i+1) + "</button>")
             }
             else{
-                $("#paggination").append("<button class='paginationBtn' onclick=\"pagFunction("+i+")\">" + Number(i+1) + "</button>")
+                $("#paggination").append("<button class='paginationBtn' onclick=\"pagesFuntion("+i+")\">" + Number(i+1) + "</button>")
             }
         }
-        if(result.pagination.right == true){
-            $("#paggination").append("<button class='paginationBtn' onclick=\"pagFunction('R')\">\>\</button>")
+        //right button
+        if(result.pagination.right == true){ //active button
+            $("#paggination").append("<button class='paginationBtn' onclick=\"arrowFunction('R'," + currentlocation + ")\">\>\</button>")
         }
-        else{
+        else{//button will not respond but will be displayed
             $("#paggination").append("<button class='paginationBtn'>\>\</button>")
         }
+        //add handler for popup message
         addRowHandlers();
-
     });
 }
 
